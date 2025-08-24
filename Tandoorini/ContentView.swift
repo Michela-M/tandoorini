@@ -12,21 +12,53 @@ struct ContentView: View {
     @StateObject private var wantManager = WantManager()
 
     @State private var showMoodPanel = true
-    @State private var selectedMood: Mood? = nil   // NEW
+    @State private var selectedMood: Mood? = nil
+    
+    @State private var isMenuOpen = false
+    @State private var currentPage = "Home"
 
     var body: some View {
         ZStack {
-            if let mood = selectedMood {
-                // Show WantsView if mood is selected
-                WantsView(manager: wantManager, mood: mood)
-            } else {
-                Text("Main App Content Here")
-                    .font(.title)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-
+            // Main content area
             VStack {
+                MainLayoutView(currentPage: currentPage, isMenuOpen: $isMenuOpen) {
+                    // This is where different page content goes
+                    currentPageView
+                }
+                .disabled(isMenuOpen)
+
+                // Main Content
+                WantsView(manager: wantManager, mood: selectedMood)
                 Spacer()
+                
+            }
+            .padding(16)
+            .disabled(isMenuOpen)
+            
+            // Side Menu
+            HStack {
+                if isMenuOpen {
+                    SideMenuView(
+                        isMenuOpen: $isMenuOpen,
+                        currentPage: $currentPage
+                    )
+                    .transition(.move(edge: .leading))
+                }
+                Spacer()
+            }
+            
+            // Overlay to close menu
+            if isMenuOpen {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isMenuOpen = false
+                        }
+                    }
+            }
+            
+            VStack {
                 if showMoodPanel {
                     MoodSelectionView(
                         categories: moodVM.categories,
@@ -56,8 +88,17 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .ignoresSafeArea()
     }
+    
+    @ViewBuilder
+        private var currentPageView: some View {
+            switch currentPage {
+            case "Home":
+                HomePageView()
+            default:
+                HomePageView()
+            }
+        }
 }
 
 struct ContentView_Previews: PreviewProvider {

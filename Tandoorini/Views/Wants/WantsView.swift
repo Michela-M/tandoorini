@@ -10,15 +10,25 @@ import SwiftUICore
 
 struct WantsView: View {
     @ObservedObject var manager: WantManager
-    let mood: Mood
+    let mood: Mood?
     let maxVisibleWants = 3
-    
+
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer() // Push cards to center vertically
+        VStack(alignment: .leading, spacing: 12) {
+            // Title
+            Text("Wants")
+                .font(.title2)
+                .frame(maxWidth: .infinity, alignment: .center)
             
-            // Take up to 3 wants from availableWants
-            let wantsToShow = manager.availableWants.prefix(maxVisibleWants)
+
+            // Wants or placeholders
+            let wantsToShow: Array<Want> = {
+                if mood != nil {
+                    return Array(manager.availableWants.prefix(maxVisibleWants))
+                } else {
+                    return []
+                }
+            }()
             
             ForEach(0..<maxVisibleWants, id: \.self) { index in
                 if index < wantsToShow.count {
@@ -26,29 +36,33 @@ struct WantsView: View {
                     WantCard(want: want) {
                         manager.validateCurrentWant()
                     }
-                    .frame(maxWidth: .infinity) // Full width
-                    .frame(height: 140) // Card height
-                    .padding(.horizontal)
-                } else {
-                    // Placeholder
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.gray.opacity(0.2))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 140)
-                        .overlay(
-                            Text("No want")
-                                .foregroundColor(.gray)
-                                .font(.headline)
-                        )
-                        .padding(.horizontal)
+                } else {
+                    // Hug-content placeholder
+                    HStack {
+                        Text("No want")
+                            .font(.headline)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .background(Color.gray.opacity(0.2))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.black, lineWidth: 1)
+                    )
                 }
             }
-            
-            Spacer() // Push cards to center vertically
         }
-        .navigationTitle("Your Wants")
+        .padding(12)
+        .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.black, lineWidth: 1)
+        )
         .onAppear {
-            manager.loadWants(forMood: mood.name)
+            if let mood = mood {
+                    manager.loadWants(forMood: mood.name)
+                }
         }
     }
 }

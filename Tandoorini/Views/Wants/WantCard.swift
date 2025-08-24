@@ -13,47 +13,43 @@ struct WantCard: View {
     @State private var showCheck = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text(want.icon ?? "🎯")
-                .font(.largeTitle)
-            
-            Text(want.title)
-                .font(.headline)
-            
-            Button(action: {
+        ZStack {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(want.title)
+                    .font(.headline)
+                
+                if let description = want.description {
+                    Text(description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.white)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.black, lineWidth: 1)
+            )
+            .onTapGesture {
                 withAnimation {
                     showCheck = true
                 }
                 onValidate()
                 
-                // hide check after short delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     withAnimation {
                         showCheck = false
                     }
                 }
-            }) {
-                Text("Validate")
-                    .font(.subheadline)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 8)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
+            }
+
+            if showCheck {
+                Text("✅")
+                    .font(.system(size: 60))
+                    .transition(.scale)
             }
         }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(RoundedRectangle(cornerRadius: 20).fill(Color(.secondarySystemBackground)))
-        .overlay(
-            Group {
-                if showCheck {
-                    Text("✅")
-                        .font(.system(size: 60))
-                        .transition(.scale)
-                }
-            }
-        )
-        .shadow(radius: 4)
     }
 }
+
