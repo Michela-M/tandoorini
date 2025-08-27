@@ -15,7 +15,7 @@ struct WantCard: View {
     var body: some View {
         ZStack {
             VStack(alignment: .leading, spacing: 6) {
-                Text(want.title)
+                Text(want.name)
                     .font(.headline)
                 
                 if let description = want.description {

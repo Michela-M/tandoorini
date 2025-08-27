@@ -24,24 +24,57 @@ class FirestoreService {
         }
     }
     
-    func fetchWants(forMood mood: String) async throws -> [Want] {
-        let moodQuery = db.collection("wants").whereField("tags", arrayContains: mood)
-        let genericQuery = db.collection("wants").whereField("isGeneric", isEqualTo: true)
+    func fetchWants(forMood moodName: String) async throws -> [Want] {
+        let query = db.collection("wants")
+        let snapshot = try await query.getDocuments()
+        var wants: [Want] = []
         
-        async let moodWants: [Want] = getDocuments(for: moodQuery)
-        async let genericWants: [Want] = getDocuments(for: genericQuery)
-        
-        let (moodArr, genericArr) = try await (moodWants, genericWants)
-        
-        // Deduplicate by id
-        var dict: [String: Want] = [:]
-        for w in moodArr + genericArr {
-            if let id = w.id {
-                dict[id] = w
-            } else {
-                dict[UUID().uuidString] = w
+        for doc in snapshot.documents {
+            let data = doc.data()
+
+            guard let name = data["name"] as? String else {
+                print("⚠️ Skipping want without a name: \(doc.documentID)")
+                continue
+            }
+
+            let description = data["description"] as? String
+            let xp = data["xp"] as? Int ?? 10
+            let coin = data["coin"] as? Int ?? 5
+            let moodRefs = data["mood"] as? [DocumentReference] ?? []
+                        
+            // Fetch mood names from references
+            let moodNames: [String] = try await withThrowingTaskGroup(of: String?.self) { group in
+                for ref in moodRefs {
+                    group.addTask {
+                        let moodDoc = try await ref.getDocument()
+                        return moodDoc.data()?["name"] as? String
+                    }
+                }
+
+                var names: [String] = []
+                for try await name in group {
+                    if let name = name {
+                        names.append(name)
+                    }
+                }
+                return names
+            }
+
+            // Filter wants that match the given mood name
+            if moodNames.contains(moodName) {
+                let want = Want(
+                    id: doc.documentID,
+                    name: name,
+                    description: description,
+                    moods: moodNames,
+                    xp: xp,
+                    coin: coin
+                )
+                wants.append(want)
             }
         }
-        return Array(dict.values)
+
+        return wants
     }
+
 }

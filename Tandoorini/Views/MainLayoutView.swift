@@ -19,9 +19,9 @@ struct MainLayoutView<Content: View>: View {
     }
     
     var body: some View {
-        VStack(spacing: 0){
+        VStack(spacing: 0) {
+            // Header
             HStack {
-                // Hamburger Menu Button
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         isMenuOpen.toggle()
@@ -31,13 +31,12 @@ struct MainLayoutView<Content: View>: View {
                         .font(.title2)
                         .foregroundColor(.primary)
                 }
-                
-                // Page Title
+
                 Text(currentPage)
                     .font(.title2)
                     .fontWeight(.semibold)
                     .padding(.leading, 8)
-                
+
                 Spacer()
             }
             .padding(.horizontal)
@@ -49,6 +48,10 @@ struct MainLayoutView<Content: View>: View {
                     .foregroundColor(Color.gray.opacity(0.3)),
                 alignment: .bottom
             )
+
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
+
 }

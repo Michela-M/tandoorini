@@ -29,48 +29,61 @@ class MoodSelectionViewModel: ObservableObject {
                 print("⚠️ No documents found")
                 return
             }
-            
+
             print("📄 Documents found: \(documents.count)")
-            for doc in documents {
-                print(doc.data())
-            }
-            
             var loadedCategories: [MoodCategory] = []
+            let dispatchGroup = DispatchGroup()
 
-                    for doc in documents {
-                        let data = doc.data()
-                        guard
-                            let name = data["name"] as? String,
-                            let icon = data["icon"] as? String,
-                            let moodsData = data["moods"] as? [[String: Any]]
-                        else {
-                            print("⚠️ Invalid document structure for \(doc.documentID)")
-                            continue
+            for doc in documents {
+                let data = doc.data()
+                guard
+                    let name = data["name"] as? String,
+                    let icon = data["icon"] as? String,
+                    let moodRefs = data["moods"] as? [DocumentReference]
+                else {
+                    print("⚠️ Invalid document structure for \(doc.documentID)")
+                    continue
+                }
+
+                var moods: [Mood] = []
+
+                for moodRef in moodRefs {
+                    dispatchGroup.enter()
+                    moodRef.getDocument { moodSnapshot, error in
+                        defer { dispatchGroup.leave() }
+
+                        guard let moodData = moodSnapshot?.data(),
+                              let moodName = moodData["name"] as? String else {
+                            print("⚠️ Failed to load mood from reference: \(moodRef.path)")
+                            return
                         }
 
-                        let moods: [Mood] = moodsData.compactMap { moodDict in
-                            guard
-                                let moodName = moodDict["name"] as? String,
-                                let moodIcon = moodDict["icon"] as? String
-                            else { return nil }
-                            return Mood(name: moodName, icon: moodIcon)
-                        }
-
-                        let category = MoodCategory(name: name, icon: icon, moods: moods)
-                        loadedCategories.append(category)
+                        let moodIcon = moodData["icon"] as? String ?? icon
+                        moods.append(Mood(name: moodName, icon: moodIcon))
                     }
+                }
 
-                    DispatchQueue.main.async {
+                dispatchGroup.notify(queue: .main) {
+                    let category = MoodCategory(name: name, icon: icon, moods: moods)
+                    loadedCategories.append(category)
+
+                    // Update UI once all categories are processed
+                    if loadedCategories.count == documents.count {
                         self.categories = loadedCategories
                         print("✅ Categories loaded: \(loadedCategories.count)")
                     }
+                }
+            }
         }
     }
-
     
     func saveMood(_ mood: Mood) {
-        selectedMood = mood
+        print("AAAAAAAAA")
+        var moodToSave = mood
+        moodToSave.savedAt = Date()
+        selectedMood = moodToSave
+
         // TODO: Integrate with Firestore
-        print("💾 Saved mood: \(mood.name)")
+        print("💾 Saved mood: \(moodToSave.name) at \(moodToSave.savedAt!)")
     }
 }

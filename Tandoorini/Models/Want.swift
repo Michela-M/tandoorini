@@ -9,11 +9,10 @@ import Foundation
 import FirebaseFirestore
 
 struct Want: Identifiable, Codable {
-    @DocumentID var id: String?   // <- gets Firestore document ID
-    var title: String
-    var description: String?
-    var tags: [String]
-    var isGeneric: Bool
-    var icon: String?
-    var difficulty: Int?
+    var id: String?
+    let name: String
+    let description: String?
+    let moods: [String]
+    let xp: Int
+    let coin: Int
 }

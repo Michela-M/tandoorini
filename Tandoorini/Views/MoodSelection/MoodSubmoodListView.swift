@@ -32,10 +32,16 @@ struct MoodSubmoodListView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if let mood = selectedMood {
-                    Button("Save") { onSave(mood)
-                        print("✅ Selected mood: \(selectedMood?.name ?? "None")")}   // save & close (parent wraps in animation)
+                    Button("Save") {
+                        onSave(mood)
+                        print("✅ Selected mood: \(mood.name)")
+                    }
                 } else {
-                    Button("Skip") { onSkip() }       // close without saving
+                    Button("Skip") {
+                        let neutralMood = Mood(name: "Neutral", icon: "😐")
+                        onSave(neutralMood)
+                        print("⚪️ Saved neutral mood")
+                    }
                 }
             }
         }

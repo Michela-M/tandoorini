@@ -8,21 +8,21 @@
 import SwiftUI
 
 struct HomePageView: View {
+    @ObservedObject var moodVM: MoodSelectionViewModel
+    @ObservedObject var wantManager: WantManager
+
+    @Binding var showMoodPanel: Bool
+    @Binding var selectedMood: Mood?
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("Welcome to Home")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, 30)
-                
-                VStack(spacing: 15) {
-                }
-                .padding(.horizontal)
-                
+        
+        ZStack {
+            VStack{
+                MoodView(mood: selectedMood)
+                WantsView(manager: wantManager, mood: selectedMood)
                 Spacer()
             }
         }
-        .background(Color(UIColor.systemGroupedBackground))
+        .padding(16)
     }
 }

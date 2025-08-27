@@ -33,7 +33,11 @@ struct MoodSelectionView: View {
             .toolbar {
                 // Root screen shows Skip
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Skip") { onClose() }
+                    Button("Skip") {
+                        let neutralMood = Mood(name: "Neutral", icon: "😐")
+                        onSaveMood(neutralMood)
+                        print("⚪️ Saved neutral mood")
+                    }
                 }
             }
             .navigationDestination(item: $selectedCategory) { category in

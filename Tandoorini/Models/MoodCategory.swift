@@ -11,6 +11,7 @@ struct Mood: Identifiable, Codable, Hashable {
     var id = UUID()
     let name: String
     let icon: String
+    var savedAt: Date? = nil
 }
 
 struct MoodCategory: Identifiable, Codable, Hashable {

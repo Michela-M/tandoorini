@@ -15,30 +15,20 @@ struct WantsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Title
             Text("Wants")
                 .font(.title2)
                 .frame(maxWidth: .infinity, alignment: .center)
-            
 
             // Wants or placeholders
-            let wantsToShow: Array<Want> = {
-                if mood != nil {
-                    return Array(manager.availableWants.prefix(maxVisibleWants))
-                } else {
-                    return []
-                }
-            }()
-            
             ForEach(0..<maxVisibleWants, id: \.self) { index in
-                if index < wantsToShow.count {
-                    let want = wantsToShow[wantsToShow.index(wantsToShow.startIndex, offsetBy: index)]
+                if index < manager.displayedWants.count {
+                    let want = manager.displayedWants[index]
                     WantCard(want: want) {
-                        manager.validateCurrentWant()
+                        manager.validateWant(want)
                     }
-                        .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity)
                 } else {
-                    // Hug-content placeholder
+                    // Placeholder
                     HStack {
                         Text("No want")
                             .font(.headline)
@@ -61,8 +51,9 @@ struct WantsView: View {
         )
         .onAppear {
             if let mood = mood {
-                    manager.loadWants(forMood: mood.name)
-                }
+                manager.loadWants(forMood: mood.name)
+            }
         }
+
     }
 }
